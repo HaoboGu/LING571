@@ -111,3 +111,4 @@ ENV/
 *.warning
 */examples/
 *.tar.gz
+*.cfg
