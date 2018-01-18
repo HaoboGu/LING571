@@ -46,7 +46,6 @@ def process_hybrid_productions(productions):
     # Hybrid production
     for p in productions:
         is_hybrid = 0  # flag that indicates if current production is hybrid
-        # print(production, len(production.rhs()))
         if len(p.rhs()) > 1:  # more than one symbols are on the right hand side
             rh_list = []  # new list for right hand symbols
             for r_symbol in p.rhs():
@@ -64,27 +63,32 @@ def process_hybrid_productions(productions):
     return to_remove_list, new_productions_list
 
 
-def process_unit_productions(productions, nonterminal_set):
+def process_unit_productions(productions, nonterminal_dict):
     # maintain a set which is same as the production list to speed up the program
-    production_set = set(gr.productions())
+    production_set = set(productions)
     need_another_loop = 0
-    to_remove = []
+    to_remove_list = []
+    to_add_list = []
     for p in productions:
         if len(p.rhs()) == 1 and is_nonterminal(p.rhs()[0]):  # A->B, B is non-terminal
-            to_remove.append(p)
-            if p.rhs()[0] not in nonterminal_set:
-                nonterminal_set[p.rhs()[0]] = p.lhs()  # add B to a set
+            to_remove_list.append(p)
+            if p.rhs()[0] not in nonterminal_dict:
+                nonterminal_dict[p.rhs()[0]] = [p.lhs()]
                 need_another_loop = 1
-        elif p.lhs() in nonterminal_set:  # B->... productions
-            if len(p.rhs()) == 1 and is_terminal(p.rhs()[0]):  # B->b, b is terminal
-                new_production = Production(nonterminal_set[p.lhs()], [p.rhs()[0]])
-                # if new_production not in gr.productions():
+            elif p.lhs() not in nonterminal_dict[p.rhs()[0]]:
+                a = nonterminal_dict[p.rhs()[0]]
+                a.append(p.lhs())
+                nonterminal_dict[p.rhs()[0]] = a
+                need_another_loop = 1
+        elif p.lhs() in nonterminal_dict:  # B->C productions
+            a = nonterminal_dict[p.lhs()]  # productions with B on the left
+            for item in a:  # for every A in A->B
+                new_production = Production(item, p.rhs())  # A->C
                 if new_production not in production_set:
                     production_set.add(new_production)  # add to the grammar
-                    # gr.productions().append(new_production)
-                    to_add.append(new_production)
+                    to_add_list.append(new_production)
                     need_another_loop = 1
-    return to_add, nonterminal_set, need_another_loop, to_remove
+    return to_add_list, nonterminal_dict, need_another_loop, to_remove_list
 
 
 def write_grammar(grammar, filename):
@@ -97,33 +101,25 @@ def write_grammar(grammar, filename):
         f.write('\n')
     f.close()
 
-# g = nltk.data.load('hw2_grammar_cnf.cfg')
-# print(g.is_chomsky_normal_form())
-
 
 if __name__ == "__main__":
     s = time.time()
-    use_local_file = True
+    use_local_file = False
     if use_local_file:
         # grammar_filename = "other_grammars/commandtalk_original.cfg"
         grammar_filename = 'atis.cfg'
         output_filename = "hw2_grammar_cnf.cfg"
-    elif len(sys.argv) == 3:
+    else:
         grammar_filename = sys.argv[1]
         output_filename = sys.argv[2]
-    else:
-        print("Number of args is not correct.")
-        exit(0)
 
     gr = nltk.data.load(grammar_filename)  # load data
 
-    print(len(gr.productions()))
     to_remove, to_add = process_hybrid_productions(gr.productions())
     # remove hybrid rules and add rules with dummy symbol
     for production in to_remove:
         gr.productions().remove(production)
     gr.productions().extend(to_add)
-    print('after converting hybrid:', len(gr.productions()))
 
     # Binarize non-binary rules
     to_remove = []
@@ -132,24 +128,24 @@ if __name__ == "__main__":
         if len(production.rhs()) > 2:
             to_remove.append(production)
             to_add.extend(create_rule_series(production))
+
     for production in to_remove:
         gr.productions().remove(production)
     gr.productions().extend(to_add)  # add binarized productions
-    print('after binarize:', len(gr.productions()))
 
     # Unit production conversion
     keep_looping = 1
-
     nonterminal_set = {}
     while keep_looping:
-        to_add = []
         to_add, nonterminal_set, keep_looping, to_remove = process_unit_productions(gr.productions(), nonterminal_set)
         gr.productions().extend(to_add)
-        print('after 1 loop of processing unit:', len(gr.productions()))
 
     for p in to_remove:
         gr.productions().remove(p)
-    write_grammar(gr, output_filename)
+    remove_duplicates = set(gr.productions())
+    g = nltk.grammar.CFG(gr.start(), list(remove_duplicates))
+    write_grammar(g, output_filename)
+
     e = time.time()
     print(e-s)
 
