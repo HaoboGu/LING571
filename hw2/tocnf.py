@@ -97,61 +97,61 @@ def write_grammar(grammar, filename):
         f.write('\n')
     f.close()
 
-g = nltk.data.load('hw2_grammar_cnf.cfg')
-print(g.is_chomsky_normal_form())
+# g = nltk.data.load('hw2_grammar_cnf.cfg')
+# print(g.is_chomsky_normal_form())
 
-#
-# if __name__ == "__main__":
-#     s = time.time()
-#     use_local_file = True
-#     if use_local_file:
-#         # grammar_filename = "other_grammars/commandtalk_original.cfg"
-#         grammar_filename = 'atis.cfg'
-#         output_filename = "hw2_grammar_cnf.cfg"
-#     elif len(sys.argv) == 3:
-#         grammar_filename = sys.argv[1]
-#         output_filename = sys.argv[2]
-#     else:
-#         print("Number of args is not correct.")
-#         exit(0)
-#
-#     gr = nltk.data.load(grammar_filename)  # load data
-#
-#     print(len(gr.productions()))
-#     to_remove, to_add = process_hybrid_productions(gr.productions())
-#     # remove hybrid rules and add rules with dummy symbol
-#     for production in to_remove:
-#         gr.productions().remove(production)
-#     gr.productions().extend(to_add)
-#     print('after converting hybrid:', len(gr.productions()))
-#
-#     # Binarize non-binary rules
-#     to_remove = []
-#     to_add = []
-#     for production in gr.productions():
-#         if len(production.rhs()) > 2:
-#             to_remove.append(production)
-#             to_add.extend(create_rule_series(production))
-#     for production in to_remove:
-#         gr.productions().remove(production)
-#     gr.productions().extend(to_add)  # add binarized productions
-#     print('after binarize:', len(gr.productions()))
-#
-#     # Unit production conversion
-#     keep_looping = 1
-#
-#     nonterminal_set = {}
-#     while keep_looping:
-#         to_add = []
-#         to_add, nonterminal_set, keep_looping, to_remove = process_unit_productions(gr.productions(), nonterminal_set)
-#         gr.productions().extend(to_add)
-#         print('after 1 loop of processing unit:', len(gr.productions()))
-#
-#     for p in to_remove:
-#         gr.productions().remove(p)
-#     write_grammar(gr, output_filename)
-#     e = time.time()
-#     print(e-s)
-#
-#
-#
+
+if __name__ == "__main__":
+    s = time.time()
+    use_local_file = True
+    if use_local_file:
+        # grammar_filename = "other_grammars/commandtalk_original.cfg"
+        grammar_filename = 'atis.cfg'
+        output_filename = "hw2_grammar_cnf.cfg"
+    elif len(sys.argv) == 3:
+        grammar_filename = sys.argv[1]
+        output_filename = sys.argv[2]
+    else:
+        print("Number of args is not correct.")
+        exit(0)
+
+    gr = nltk.data.load(grammar_filename)  # load data
+
+    print(len(gr.productions()))
+    to_remove, to_add = process_hybrid_productions(gr.productions())
+    # remove hybrid rules and add rules with dummy symbol
+    for production in to_remove:
+        gr.productions().remove(production)
+    gr.productions().extend(to_add)
+    print('after converting hybrid:', len(gr.productions()))
+
+    # Binarize non-binary rules
+    to_remove = []
+    to_add = []
+    for production in gr.productions():
+        if len(production.rhs()) > 2:
+            to_remove.append(production)
+            to_add.extend(create_rule_series(production))
+    for production in to_remove:
+        gr.productions().remove(production)
+    gr.productions().extend(to_add)  # add binarized productions
+    print('after binarize:', len(gr.productions()))
+
+    # Unit production conversion
+    keep_looping = 1
+
+    nonterminal_set = {}
+    while keep_looping:
+        to_add = []
+        to_add, nonterminal_set, keep_looping, to_remove = process_unit_productions(gr.productions(), nonterminal_set)
+        gr.productions().extend(to_add)
+        print('after 1 loop of processing unit:', len(gr.productions()))
+
+    for p in to_remove:
+        gr.productions().remove(p)
+    write_grammar(gr, output_filename)
+    e = time.time()
+    print(e-s)
+
+
+
