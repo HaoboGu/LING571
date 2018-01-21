@@ -8,6 +8,13 @@ import time
 from nltk import word_tokenize
 import numpy as np
 
+
+class Tree:
+    def __init__(self):
+
+
+
+
 def create_map(productions):
     """
     Create a dictionary mapping symbols on RHS to a set of symbols on LHS based on grammar
@@ -35,12 +42,21 @@ def initialize_table(n_dimension):
     return table
 
 
-def find_lhs(table, i, k, j, productions):
+def find_lhs(table, i, k, j, symbol_map):
     """
     Look through the grammar and find lhs X where X satisfies {X->BC in grammar && B in table[i,k] && C in table[k,j]}
     :return:
     """
-    return 0
+    added_lhs = set()
+    for s1 in table[i, k]:
+        for s2 in table[k, j]:
+            rhs = (s1, s2)
+            if rhs in symbol_map:
+                lhs = symbol_map[rhs]
+                added_lhs = added_lhs.union(lhs)
+                # print(rhs, lhs)
+
+    return added_lhs
 
 
 def cky(words, grammar):
@@ -57,18 +73,26 @@ def cky(words, grammar):
     # Create a d+1*d+1 table
     # Each cell [i,j] in the table represents set of non-terminals with derivation spanning i and j
     table = initialize_table(d+1)
-
+    back_dict = {}
     for j in range(1, len(words)+1):
-        j_tuple = tuple([j])
+        j_tuple = tuple([words[j-1]])
+
         if j_tuple in symbol_map:
             table[j-1][j] = symbol_map[j_tuple]
+
         else:
+            print(j_tuple)
             print("This word cannot be reached by the grammar")
         for i in range(j-2, -1, -1):  # from j-2 to 0
             for k in range(i+1, j):  # from i+1 to j-1
-                X = find_lhs()
+                X = find_lhs(table, i, k, j, symbol_map)
+                # if not X:
+                #     back_dict[tuple(X)] = [(i, k), (k, j)]
+
+                # print(X)
                 table[i, j] = table[i, j].union(X)
-                # where X satisfies {X->BC in grammar && B in table[i,k] && C in table[k,j]}
+    return table
+
 
 
 if __name__ == "__main__":
@@ -79,8 +103,8 @@ if __name__ == "__main__":
         import os
         if 'hw3' in os.listdir():
             os.chdir('hw3')
-        grammar_filename = 'grammar_cnf.cfg'
-        test_sentence_filename = 'sentences.txt'
+        grammar_filename = 'toy.cfg'
+        test_sentence_filename = 'toy_sentences.txt'
         output_filename = "output_parses.txt"
 
     else:
@@ -93,10 +117,12 @@ if __name__ == "__main__":
     line = sen_file.readline()
     while line:
         word_seq = word_tokenize(line)
-        cky(word_seq, gr)
+        words_table = cky(word_seq, gr)
+        print(word_seq)
+        print(words_table)
+
         line = sen_file.readline()
 
-    print(a)
     sen_file.close()
 
 
