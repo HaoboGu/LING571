@@ -110,5 +110,5 @@ ENV/
 *.hmm
 *.warning
 */examples/
-*.tar.gz
+# *.tar.gz
 *.cfg
