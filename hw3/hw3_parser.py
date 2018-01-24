@@ -76,10 +76,6 @@ if __name__ == "__main__":
     s = time.time()
     use_local_file = False
     if use_local_file:
-        # grammar_filename = "other_grammars/commandtalk_original.cfg"
-        import os
-        if 'hw3' in os.listdir():
-            os.chdir('hw3')
         grammar_filename = 'grammar_cnf.cfg'
         test_sentence_filename = 'sentences.txt'
         output_filename = "output_parses.txt"
@@ -111,8 +107,6 @@ if __name__ == "__main__":
         o_string = 'Number of parses: ' + str(n_parses) + '\n\n'
         o_file.write(o_string)
         line = sen_file.readline()
-    # o_string = 'Average parses per sentence: ' + str(s_parses/n_lines)
-    # o_file.write(o_string)
     o_file.close()
     sen_file.close()
 
