@@ -112,3 +112,4 @@ ENV/
 */examples/
 # *.tar.gz
 *.cfg
+*/grader/
