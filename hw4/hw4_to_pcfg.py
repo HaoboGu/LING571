@@ -21,9 +21,8 @@ if __name__ == "__main__":
     line = tb.readline()
 
     # set start symbol
-    if line:
-        tree = nltk.tree.Tree.fromstring(line)
-        start_symbol = Nonterminal(tree.label())
+    tree = nltk.tree.Tree.fromstring(line)
+    start_symbol = Nonterminal(tree.label())
 
     # read trees and convert them to productions
     productions = []
@@ -34,13 +33,24 @@ if __name__ == "__main__":
     tb.close()
 
     # convert list of productions to pcfg
-    if productions:
-        pcfg = induce_pcfg(start_symbol, productions)
+
+    pcfg = induce_pcfg(start_symbol, productions)
 
     # write pcfg to file
     output_pcfg = open(output_pcfg_filename, 'w')
-    for prob_productions in pcfg.productions():
-        output_pcfg.write(prob_productions.__str__())
+
+    # write production with start symbol first
+    for prob_production in pcfg.productions():
+        if prob_production.lhs() == start_symbol:
+
+            output_pcfg.write(prob_production.__str__())
+            output_pcfg.write('\n')
+            pcfg.productions().remove(prob_production)
+            break
+            
+    # write other productions
+    for prob_production in pcfg.productions():
+        output_pcfg.write(prob_production.__str__())
         output_pcfg.write('\n')
     output_pcfg.close()
 
