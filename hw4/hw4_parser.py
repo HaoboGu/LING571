@@ -1,11 +1,16 @@
 import nltk
 import sys
+import time
+from nltk import word_tokenize
+import numpy as np
+from nltk.tree import Tree
+from nltk.grammar import PCFG
 from nltk import induce_pcfg
 from nltk.grammar import Nonterminal
 import os
 
-
 if __name__ == "__main__":
+    s = time.time()
     use_local_file = True
     if use_local_file:
         if 'hw4' in os.listdir():
@@ -16,28 +21,21 @@ if __name__ == "__main__":
         treebank_filename = sys.argv[1]
         output_pcfg_filename = sys.argv[2]
 
-    # open tree bank file
     tb = open(treebank_filename)
     line = tb.readline()
-
-    # set start symbol
     if line:
         tree = nltk.tree.Tree.fromstring(line)
         start_symbol = Nonterminal(tree.label())
-
-    # read trees and convert them to productions
+        # print(start_symbol)
     productions = []
     while line:
         tree = nltk.tree.Tree.fromstring(line)
         productions += tree.productions()
         line = tb.readline()
     tb.close()
-
-    # convert list of productions to pcfg
     if productions:
         pcfg = induce_pcfg(start_symbol, productions)
 
-    # write pcfg to file
     output_pcfg = open(output_pcfg_filename, 'w')
     for prob_productions in pcfg.productions():
         output_pcfg.write(prob_productions.__str__())
