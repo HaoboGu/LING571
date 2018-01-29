@@ -1,0 +1,9 @@
+hw4_topcfg.sh
+hw4_parser.sh
+hw4_improved.sh
+hw4_run.sh
+hw4_trained.pcfg
+parses_base.out
+parses_base.eval
+parses_improved.out
+parses_improved.eval
