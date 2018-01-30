@@ -33,7 +33,6 @@ if __name__ == "__main__":
     tb.close()
 
     # convert list of productions to pcfg
-
     pcfg = induce_pcfg(start_symbol, productions)
 
     # write pcfg to file
@@ -47,7 +46,7 @@ if __name__ == "__main__":
             output_pcfg.write('\n')
             pcfg.productions().remove(prob_production)
             break
-            
+
     # write other productions
     for prob_production in pcfg.productions():
         output_pcfg.write(prob_production.__str__())
