@@ -131,7 +131,7 @@ if __name__ == "__main__":
     sents_file.close()
     output_file.close()
     e = time.time()
-    print(e-s)
+    # print(e-s)
 
 
 

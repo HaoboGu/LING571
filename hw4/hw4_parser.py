@@ -104,7 +104,7 @@ if __name__ == "__main__":
         trees = words_table[0][words_table.shape[1] - 1]  # get parse results
         # Write parses
         if len(trees) == 0:  # no parse tree
-            print('no parse tree')
+            # print('no parse tree')
             output_file.write('\n')
         else:
             # Get best parse first
