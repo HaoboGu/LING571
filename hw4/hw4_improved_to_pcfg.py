@@ -8,7 +8,7 @@ import os
 
 
 if __name__ == "__main__":
-    use_local_file = True
+    use_local_file = False
     if use_local_file:
         if 'hw4' in os.listdir():
             os.chdir('hw4')
