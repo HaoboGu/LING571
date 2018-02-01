@@ -1,6 +1,6 @@
 executable = hw4_run.sh
 getenv     = true
-log        = hw4.log
+output     = hw4.out
 error      = hw4.err
 notification = never
 arguments  = "data/parses.train hw4_base.pcfg data/sentences.txt parses_base.out hw4_improved.pcfg parses_improved.out parses_base.eval parses_improved.eval"
