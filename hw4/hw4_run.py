@@ -10,7 +10,7 @@ if __name__ == "__main__":
         if 'hw4' in os.listdir():
             os.chdir('hw4')
         treebank_filename = 'data/parses.train'
-        output_pcfg_filename = "hw4_base.pcfg"
+        output_pcfg_filename = "hw4_trained.pcfg"
         sentences_filename = 'data/sentences.txt'
         baseline_parses_filename = "parses_base.out"
         input_pcfg_filename = 'hw4_improved.pcfg'
