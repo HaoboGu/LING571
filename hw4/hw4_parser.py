@@ -4,6 +4,7 @@ import os
 import numpy as np
 from nltk.tree import ProbabilisticTree
 import re
+import time
 
 
 def create_map(productions):
@@ -80,6 +81,7 @@ def pcky(sentence, pcfg):
 
 
 if __name__ == "__main__":
+    s = time.time()
     use_local_file = False
     if use_local_file:
         if 'hw4' in os.listdir():
@@ -120,7 +122,8 @@ if __name__ == "__main__":
         line = sents_file.readline()
     sents_file.close()
     output_file.close()
-
+    e = time.time()
+    print('Baseline parser costs', e - s, 's')
 
 
 

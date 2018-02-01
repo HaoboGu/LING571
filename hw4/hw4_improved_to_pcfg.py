@@ -2,7 +2,6 @@ import nltk
 import sys
 from nltk import induce_pcfg
 from nltk.grammar import Nonterminal
-from nltk.grammar import DependencyProduction
 from nltk.grammar import Production
 import os
 
@@ -37,24 +36,13 @@ if __name__ == "__main__":
     # Add productions dealing with *unknown* words
     lhs_set = []  # Set of non-terminals that derive terminals
     for p in productions:
-
         if p.is_lexical():
             lhs_set.append(p.lhs())
     for lhs in lhs_set:
         productions.append(Production(lhs, ['*unknown*']))
 
     # convert list of productions to pcfg
-
     pcfg = induce_pcfg(start_symbol, productions)
-    # prime = Nonterminal('S_PRIME')
-    # print(pcfg.leftcorners(prime))
-    # u = set()
-    # for p in pcfg.productions():
-    #     if p.lhs() == prime:
-    #         print(p.rhs()[0], pcfg.leftcorners(p.rhs()[0]))
-    #         u = u.union(pcfg.leftcorners(p.rhs()[0]))
-    # print(u)
-    # for i in set(p.lhs() for p in pcfg.productions()):
 
     # write pcfg to file
     output_pcfg = open(output_pcfg_filename, 'w')

@@ -6,6 +6,7 @@ from nltk.tree import ProbabilisticTree
 import re
 import time
 
+
 def create_map(productions):
     """
     Create a dictionary mapping symbols on RHS to a set of symbols on LHS based on grammar
@@ -92,7 +93,6 @@ if __name__ == "__main__":
         sentences_filename = sys.argv[2]
         output_parses_filename = sys.argv[3]
     s = time.time()
-    # for i in range(20):
     prob_cfg = nltk.data.load(input_pcfg_filename, format='pcfg')  # read pcfg grammar
     start_symbol = prob_cfg.start()  # get start symbol
     sents_file = open(sentences_filename)  # sentence file
@@ -102,19 +102,9 @@ if __name__ == "__main__":
     while line:
         word_seq = nltk.word_tokenize(line)  # word sequence
         words_table = pcky(word_seq, prob_cfg)  # run pcky algorithm
-        # print number of parses in each cell
-        # d = len(word_seq)
-        # ost = ''
-        # for i in range(words_table.shape[0]):
-        #     for j in range(words_table.shape[1]):
-        #         ost += str(len(words_table[i][j])) + ' '
-        #     ost += '\n'
-        # print(ost)
-        # print('-----')
         trees = words_table[0][words_table.shape[1] - 1]  # get parse results
         # Write parses
         if len(trees) == 0:  # no parse tree
-            # print('no parse tree')
             output_file.write('\n')
         else:
             # Get best parse first
@@ -131,7 +121,7 @@ if __name__ == "__main__":
     sents_file.close()
     output_file.close()
     e = time.time()
-    # print(e-s)
+    print('Improved parser costs', e-s, 's')
 
 
 

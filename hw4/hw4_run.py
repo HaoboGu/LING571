@@ -1,11 +1,10 @@
-import time
 import sys
 import os
 import subprocess
 
 
 if __name__ == "__main__":
-    use_local_file = False
+    use_local_file = True
     if use_local_file:
         # print(os.listdir())
         if 'hw4' in os.listdir():
@@ -44,27 +43,19 @@ if __name__ == "__main__":
     command1 = ['./hw4_topcfg.sh', treebank_filename, output_pcfg_filename]
     # command for basic parsing
     command2 = ['./hw4_parser.sh', output_pcfg_filename, sentences_filename, baseline_parses_filename]
-   # command for converting treebank to pcfg improved version
+    # command for converting treebank to pcfg improved version
     command4 = ['./hw4_improved_induction.sh', treebank_filename, input_pcfg_filename]
     # command for improved parsing
     command5 = ['./hw4_improved_parser.sh', input_pcfg_filename, sentences_filename, improved_parses_filename]
 
     subprocess.call(command1)
-    s1 = time.time()
     subprocess.call(command2)
-    e1 = time.time()
-    print('baseline system costs', e1-s1, 's')
     with open(baseline_eval, 'w') as baseline_eval_file:
         subprocess.Popen(command3, stdout=baseline_eval_file)
     subprocess.call(command4)
-    s2 = time.time()
     subprocess.call(command5)
-    e2 = time.time()
-    print('improved system costs', e2-s2, 's')
     with open(improved_eval, 'w') as improved_eval_file:
         subprocess.Popen(command6, stdout=improved_eval_file)
-
-    subprocess.call(command6)
 
 
 
