@@ -118,3 +118,5 @@ grader/
 *.err
 *.log
 *.txt
+*.eval
+*/tools/*
