@@ -28,6 +28,7 @@ if __name__ == "__main__":
     with open(sentences_filename, 'r') as sent_file:
         line = sent_file.readline().strip('\n')
         while line:
+            output_file.write(line+'\n')
             words = nltk.word_tokenize(line)
             try:
                 parsed = parser.parse(words)
