@@ -9,8 +9,8 @@ if __name__ == "__main__":
     s = time.time()
     use_local_file = False
     if use_local_file:
-        if 'hw4' in os.listdir():
-            os.chdir('hw4')
+        if 'hw5' in os.listdir():
+            os.chdir('hw5')
         input_pcfg_filename = 'grammar.fcfg'
         sentences_filename = 'sentences.txt'
         output_parses_filename = "hw5_output.txt"
