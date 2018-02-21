@@ -2,6 +2,11 @@ import sys
 import os
 import nltk
 import re
+import numpy as np
+from operator import itemgetter
+from scipy.spatial.distance import cosine
+from scipy import stats
+from math import log2
 
 def remove_puncs(raw_sentences):
     """
@@ -10,11 +15,29 @@ def remove_puncs(raw_sentences):
     :return: List[List[str]]
     """
     sentences_without_puncs = []
-    for i in range(len(raw_sentences)):
-        sentence = ' '.join(raw_sentences[i])
-        sentence = re.sub('[^\w ]+', '', sentence.lower())  # remove all punctuations using Regex
-        sentences_without_puncs.append(nltk.word_tokenize(sentence))
-    return sentences_without_puncs
+    all_words = set()
+    puncs = set()
+    for raw_sent in raw_sentences:
+        sent_without_punc = []
+        for raw_w in raw_sent:
+            if not re.search('^\W+$', raw_w):
+                sent_without_punc.append(raw_w.lower())
+                all_words.add(raw_w.lower())
+            else:
+                puncs.add(raw_w)
+        sentences_without_puncs.append(sent_without_punc)
+    # for i in range(len(raw_sentences)):
+    #     sentence = ' '.join(raw_sentences[i])
+    #     sentence = re.sub('[^\w ]+', '', sentence.lower())  # remove all punctuations using Regex
+    #
+    #     sentences_without_puncs.append(np.array(nltk.word_tokenize(sentence)))
+
+    # Another version: for word bag
+    # for word in raw_sentences:
+    #     if re.search('\w+', word):
+    #         sentences_without_puncs.append(word)
+
+    return sentences_without_puncs, all_words
 
 
 def initialize_feature_dict(all_words):
@@ -26,14 +49,24 @@ def initialize_feature_dict(all_words):
     temp = {}
     for w in all_words:
         temp[w] = 0
-
-    features = {}
-    for w in all_words:
-        features[w] = temp.copy()
-    return features
+    return temp
 
 
-# def add_to_dict(dictionary, key, value):
+def read_word_pairs(filename):
+    """
+    Read word pairs from given file. Each line is of the form: wd1,wd2,similarity_score
+    :param filename:
+    :return: [wd1, wd2, similarity]
+    """
+    word_pairs = []
+    with open(filename, 'r') as f:
+        line = f.readline().strip('\n')
+        while line:
+            word_pairs.append(line.split(','))
+            line = f.readline().strip('\n')
+    return np.array(word_pairs, dtype=str)
+
+
 __name__ = "__main__"
 if __name__ == "__main__":
     use_local_file = True
@@ -41,8 +74,8 @@ if __name__ == "__main__":
         if 'hw7' in os.listdir():
             os.chdir('hw7')
         window = 2
-        weighting = "FREQ"
-        # weighting = "PMI"
+        # weighting = "FREQ"
+        weighting = "PMI"
         judgment_filename = "mc_similarity.txt"
         output_filename = "hw7_sim_" + str(window) + "_" + weighting + "_output.txt"
     else:
@@ -54,42 +87,123 @@ if __name__ == "__main__":
         judgment_filename = sys.argv[3]
         output_filename = sys.argv[4]
 
+    # Read word pairs
+    print('Reading word pairs...')
+    pairs = read_word_pairs(judgment_filename)
+
     # brown_words = list(nltk.corpus.brown.words())[0:22079]
     print('Reading corpus...')
-    brown_sentences = list(nltk.corpus.brown.sents())[0:1000]
+    sentences = list(nltk.corpus.brown.sents())
+    # brown_words = list(nltk.corpus.brown.words())
 
     # First, remove all punctuations
     print('Removing punctuations...')
-    sentences = remove_puncs(brown_sentences)
+    sentences, word_set = remove_puncs(sentences)
+    # words = remove_puncs(brown_words)
 
-    # Create the set of word
-    word_set = set()
-    for sent in sentences:
-        word_set = word_set.union(set(sent))
-
-    # Initialize the feature dictionary
-    print('Initializing feature dict...')
-    feat_dict = initialize_feature_dict(word_set)
-
+    cos_sims = []
+    golden = []
+    ## For sentences
     if weighting == 'FREQ':
-        # Use frequency as the value of features
-        for sent in sentences:
-            length = len(sent)
-            for i in range(length):
-                cur_word = sent[i]
-                for index in range(1, window+1):  # consider words in the window
-                    if i+index < length:
-                        feat_word = sent[i+index]
-                        # current word is sent[i], add 1 on feature sent[i+index]
-                        feat_dict[cur_word][feat_word] += 1
-                    if i-index >= 0:
-                        feat_word = sent[i-index]
-                        # current word is sent[i], add 1 on feature sent[i-index]
-                        feat_dict[cur_word][feat_word] += 1
+        for word1, word2, sim in pairs:
+            feature1 = initialize_feature_dict(word_set)
+            feature2 = initialize_feature_dict(word_set)
+            for sent in sentences:
+                sent = np.array(sent).astype(str)
+                n_words = len(sent)
+                for word_index in np.where(sent == word1)[0]:
 
+                    for offset in range(1, window + 1):  # offset: 1 ~ window
+                        if word_index - offset >= 0:
+                            feature1[sent[word_index - offset]] += 1
+                        if word_index + offset < n_words:
+                            feature1[sent[word_index + offset]] += 1
 
+                for word_index in np.where(sent == word2)[0]:
+                    for offset in range(1, window + 1):  # offset: 1 ~ window
+                        if word_index - offset >= 0:
+                            feature2[sent[word_index - offset]] += 1
+                        if word_index + offset < n_words:
+                            feature2[sent[word_index + offset]] += 1
+
+            m1 = sorted(feature1.items(), key=itemgetter(0), reverse=False)
+            m2 = sorted(feature2.items(), key=itemgetter(0), reverse=False)
+            v1 = list(map(list, zip(*m1)))
+            v2 = list(map(list, zip(*m2)))
+            cos_sim = 1 - cosine(list(v1[1]), list(v2[1]))  # 1 - cosine distance
+
+            m1 = sorted(feature1.items(), key=itemgetter(1), reverse=True)
+            m2 = sorted(feature2.items(), key=itemgetter(1), reverse=True)
+            out_str1 = word1
+            out_str2 = word2
+            for i in range(0, 10):
+                out_str1 = out_str1 + ' ' + m1[i][0] + ':' + str(m1[i][1])
+                out_str2 = out_str2 + ' ' + m2[i][0] + ':' + str(m2[i][1])
+            print(out_str1)
+            print(out_str2)
+            cos_sims.append(cos_sim.__float__())
+            golden.append(float(sim))
+            print(word1, word2, cos_sim)
+        res = stats.spearmanr(cos_sims, golden)
+        print(res)
     else:
-        print(1)
+        ## PMI
+        count = initialize_feature_dict(word_set)
+        for sent in sentences:
+            for word in sent:
+                count[word] += 1
+        multiplier = sum(count.values())
 
+        for word1, word2, sim in pairs:
+            # To calculate PMI, find all co-occurrences first
+            feature1 = initialize_feature_dict(word_set)
+            feature2 = initialize_feature_dict(word_set)
+            word_in_window1 = set()
+            word_in_window2 = set()
+            for sent in sentences:
+                sent = np.array(sent).astype(str)
+                n_words = len(sent)
+                for word_index in np.where(sent == word1)[0]:
+                    for offset in range(1, window + 1):  # offset: 1 ~ window
+                        if word_index - offset >= 0:
+                            feature1[sent[word_index - offset]] += 1
+                            word_in_window1.add(sent[word_index - offset])
+                        if word_index + offset < n_words:
+                            feature1[sent[word_index + offset]] += 1
+                            word_in_window1.add(sent[word_index + offset])
+                for word_index in np.where(sent == word2)[0]:
+                    for offset in range(1, window + 1):  # offset: 1 ~ window
+                        if word_index - offset >= 0:
+                            feature2[sent[word_index - offset]] += 1
+                            word_in_window2.add(sent[word_index - offset])
+                        if word_index + offset < n_words:
+                            feature2[sent[word_index + offset]] += 1
+                            word_in_window2.add(sent[word_index + offset])
+            for word in word_in_window1:
+                # PMI = co-occurrence(wd1, wd2) * # of words / (count(wd1) * count(wd2))
+                pmi1 = feature1[word] * multiplier / (count[word1] * count[word])
+                feature1[word] = max(log2(pmi1), 0)
+            for word in word_in_window2:
+                pmi2 = feature2[word] * multiplier / (count[word2] * count[word])
+                feature2[word] = max(log2(pmi2), 0)
+            m1 = sorted(feature1.items(), key=itemgetter(0), reverse=False)
+            m2 = sorted(feature2.items(), key=itemgetter(0), reverse=False)
+            v1 = list(map(list, zip(*m1)))
+            v2 = list(map(list, zip(*m2)))
+            cos_sim = 1 - cosine(list(v1[1]), list(v2[1]))  # 1 - cosine distance
 
+            m1 = sorted(feature1.items(), key=itemgetter(1), reverse=True)
+            m2 = sorted(feature2.items(), key=itemgetter(1), reverse=True)
+            out_str1 = word1
+            out_str2 = word2
+            for i in range(0, 10):
+                out_str1 = out_str1 + ' ' + m1[i][0] + ':' + str(m1[i][1])
+                out_str2 = out_str2 + ' ' + m2[i][0] + ':' + str(m2[i][1])
+            print(out_str1)
+            print(out_str2)
+            cos_sims.append(cos_sim.__float__())
+            golden.append(float(sim))
+            print(word1, word2, cos_sim)
+        res = stats.spearmanr(cos_sims, golden, 0)
+        print(res)
 
