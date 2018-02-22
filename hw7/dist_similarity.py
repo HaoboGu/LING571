@@ -8,6 +8,7 @@ from scipy.spatial.distance import cosine
 from scipy import stats
 from math import log2
 
+
 def remove_puncs(raw_sentences):
     """
     Remove all punctuations in the raw data, including punctuations in the word
@@ -26,16 +27,6 @@ def remove_puncs(raw_sentences):
             else:
                 puncs.add(raw_w)
         sentences_without_puncs.append(sent_without_punc)
-    # for i in range(len(raw_sentences)):
-    #     sentence = ' '.join(raw_sentences[i])
-    #     sentence = re.sub('[^\w ]+', '', sentence.lower())  # remove all punctuations using Regex
-    #
-    #     sentences_without_puncs.append(np.array(nltk.word_tokenize(sentence)))
-
-    # Another version: for word bag
-    # for word in raw_sentences:
-    #     if re.search('\w+', word):
-    #         sentences_without_puncs.append(word)
 
     return sentences_without_puncs, all_words
 
@@ -67,44 +58,12 @@ def read_word_pairs(filename):
     return np.array(word_pairs, dtype=str)
 
 
-__name__ = "__main__"
-if __name__ == "__main__":
-    use_local_file = True
-    if use_local_file:
-        if 'hw7' in os.listdir():
-            os.chdir('hw7')
-        window = 2
-        # weighting = "FREQ"
-        weighting = "PMI"
-        judgment_filename = "mc_similarity.txt"
-        output_filename = "hw7_sim_" + str(window) + "_" + weighting + "_output.txt"
-    else:
-        window = sys.argv[1]
-        weighting = sys.argv[2]
-        if weighting != "FREQ" or weighting != "PMI":
-            print("Error: weighting must be FREQ or PMI")
-        # weighting = "PMI"
-        judgment_filename = sys.argv[3]
-        output_filename = sys.argv[4]
-
-    # Read word pairs
-    print('Reading word pairs...')
-    pairs = read_word_pairs(judgment_filename)
-
-    # brown_words = list(nltk.corpus.brown.words())[0:22079]
-    print('Reading corpus...')
-    sentences = list(nltk.corpus.brown.sents())
-    # brown_words = list(nltk.corpus.brown.words())
-
-    # First, remove all punctuations
-    print('Removing punctuations...')
-    sentences, word_set = remove_puncs(sentences)
-    # words = remove_puncs(brown_words)
-
+def word_sim(output_filename, pairs, sentences, word_set, weight="FREQ"):
     cos_sims = []
     golden = []
-    ## For sentences
-    if weighting == 'FREQ':
+    out_f = open(output_filename, 'w')
+
+    if weight == 'FREQ':
         for word1, word2, sim in pairs:
             feature1 = initialize_feature_dict(word_set)
             feature2 = initialize_feature_dict(word_set)
@@ -139,15 +98,19 @@ if __name__ == "__main__":
             for i in range(0, 10):
                 out_str1 = out_str1 + ' ' + m1[i][0] + ':' + str(m1[i][1])
                 out_str2 = out_str2 + ' ' + m2[i][0] + ':' + str(m2[i][1])
-            print(out_str1)
-            print(out_str2)
+            out_str1 = out_str1 + '\n'
+            out_str2 = out_str2 + '\n'
+            out_f.write(out_str1)
+            out_f.write(out_str2)
             cos_sims.append(cos_sim.__float__())
             golden.append(float(sim))
-            print(word1, word2, cos_sim)
+            out_str3 = word1 + ',' + word2 + ':' + str(cos_sim) + '\n'
+            out_f.write(out_str3)
         res = stats.spearmanr(cos_sims, golden)
-        print(res)
+        out_str4 = 'Correlation:'+str(res[0])
+        out_f.write(out_str4)
     else:
-        ## PMI
+        # PMI
         count = initialize_feature_dict(word_set)
         for sent in sentences:
             for word in sent:
@@ -199,11 +162,50 @@ if __name__ == "__main__":
             for i in range(0, 10):
                 out_str1 = out_str1 + ' ' + m1[i][0] + ':' + str(m1[i][1])
                 out_str2 = out_str2 + ' ' + m2[i][0] + ':' + str(m2[i][1])
-            print(out_str1)
-            print(out_str2)
+            out_str1 = out_str1 + '\n'
+            out_str2 = out_str2 + '\n'
+            out_f.write(out_str1)
+            out_f.write(out_str2)
             cos_sims.append(cos_sim.__float__())
             golden.append(float(sim))
-            print(word1, word2, cos_sim)
+            out_str3 = word1 + ',' + word2 + ':' + str(cos_sim) + '\n'
+            out_f.write(out_str3)
         res = stats.spearmanr(cos_sims, golden, 0)
-        print(res)
+        out_str4 = 'Correlation:'+str(res[0])
+        out_f.write(out_str4)
+    out_f.close()
+
+
+if __name__ == "__main__":
+    use_local_file = False
+    if use_local_file:
+        if 'hw7' in os.listdir():
+            os.chdir('hw7')
+        window = 2
+        weighting = "FREQ"
+        # weighting = "PMI"
+        judgment_filename = "mc_similarity.txt"
+        output_filename = "hw7_sim_" + str(window) + "_" + weighting + "_output.txt"
+    else:
+        window = sys.argv[1]
+        weighting = sys.argv[2]
+        if weighting != "FREQ" or weighting != "PMI":
+            print("Error: weighting must be FREQ or PMI")
+        # weighting = "PMI"
+        judgment_filename = sys.argv[3]
+        output_filename = sys.argv[4]
+
+    # Read word pairs
+    print('Reading word pairs...')
+    word_pairs = read_word_pairs(judgment_filename)
+
+    print('Reading corpus...')
+    brown_sentences = list(nltk.corpus.brown.sents())
+
+    # First, remove all punctuations
+    print('Removing punctuations...')
+    brown_sentences, words = remove_puncs(brown_sentences)
+
+    # Calculate similarity
+    word_sim(output_filename, word_pairs, brown_sentences, words, weighting)
 
