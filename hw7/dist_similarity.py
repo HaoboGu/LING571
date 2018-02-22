@@ -187,9 +187,9 @@ if __name__ == "__main__":
         judgment_filename = "mc_similarity.txt"
         output_filename = "hw7_sim_" + str(window) + "_" + weighting + "_output.txt"
     else:
-        window = sys.argv[1]
+        window = int(sys.argv[1])
         weighting = sys.argv[2]
-        if weighting != "FREQ" or weighting != "PMI":
+        if weighting != "FREQ" and weighting != "PMI":
             print("Error: weighting must be FREQ or PMI")
         # weighting = "PMI"
         judgment_filename = sys.argv[3]

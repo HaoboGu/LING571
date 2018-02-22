@@ -67,7 +67,7 @@ if __name__ == "__main__":
         judgment_filename = "mc_similarity.txt"
         output_filename = "hw7_sim_" + str(window) + "_" + "CBOW" + "_output.txt"
     else:
-        window = sys.argv[1]
+        window = int(sys.argv[1])
         judgment_filename = sys.argv[2]
         output_filename = sys.argv[3]
 
