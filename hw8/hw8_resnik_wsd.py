@@ -1,43 +1,11 @@
 import sys
 import os
-import nltk
-import re
 import numpy as np
 from scipy.stats import spearmanr
-from nltk.corpus import wordnet as wn
-from nltk.corpus import wordnet_ic
-def remove_puncs(raw_sentences):
-    """
-    Remove all punctuations in the raw data, including punctuations in the word
-    :param raw_sentences: List[List[str]]
-    :return: List[List[str]]
-    """
-    sentences_without_puncs = []
-    all_words = set()
-    puncs = set()
-    for raw_sent in raw_sentences:
-        sent_without_punc = []
-        for raw_w in raw_sent:
-            if not re.search('^\W+$', raw_w):
-                sent_without_punc.append(raw_w.lower())
-                all_words.add(raw_w.lower())
-            else:
-                puncs.add(raw_w)
-        sentences_without_puncs.append(sent_without_punc)
-
-    return sentences_without_puncs, all_words
-
-
-def initialize_feature_dict(all_words):
-    """
-    Initialize feature dictionary, based on words in word set
-    :param all_words:
-    :return: dictionary of features
-    """
-    temp = {}
-    for w in all_words:
-        temp[w] = 0
-    return temp
+from nltk.corpus import *
+from nltk.corpus.reader.wordnet import information_content
+from collections import Counter
+from operator import itemgetter
 
 
 def read_word_pairs(filename):
@@ -74,8 +42,76 @@ def read_wsd_test_file(filename):
 
     return wsd_test
 
+
+def resnik(word1, word2, ic_data):
+    """
+    Calculate resnik similarity between word1 and word2 using information content data.
+    Resnik similarity = max of [ic(s) for s in subsumers(word1, word2)]
+    :param word1:
+    :param word2:
+    :param ic_data:
+    :return:
+    """
+    resnik_sim = 0
+    best_sense = ''
+    for syn_sense_probe in wordnet.synsets(word1):
+        for syn_sense_noun in wordnet.synsets(word2):
+            syn_word1 = wordnet.synset(syn_sense_probe.name())  # get synnet for word1
+            syn_word2 = wordnet.synset(syn_sense_noun.name())  # get synnet for word2
+            subsumers = syn_word1.common_hypernyms(syn_word2)  # get all subsumers
+            ic = 0
+            if len(subsumers) > 0:
+                # If there exists subsumers for probe and noun
+                for s in subsumers:
+                    ic = information_content(s, ic_data) if information_content(s, ic_data) > ic else ic
+            if ic > resnik_sim:
+                # If current information content is better
+                resnik_sim = ic
+                best_sense = syn_word1
+    return resnik_sim, best_sense
+
+
+def resnik_wsd(data, ic_data, output_file, judgment_file):
+    """
+    Main part of this hw
+    :param data: test data
+    :param ic_data: information content data
+    :param output_file: output filename
+    :param judgment_file: human judgment filename
+    :return:
+    """
+    with open(output_file, 'w') as of:
+        # For probe word and noun group pairs in wsd context file
+        for probe, noun_group in data:
+            out_s = ''
+            sense_list = []
+            for noun in noun_group:
+                resnik_sim, best_sense = resnik(probe, noun, ic_data)
+                out_s = out_s + '(' + probe + ', ' + noun + ', ' + str(resnik_sim) + ')' + ' '
+                if not isinstance(best_sense, str):  # if no common subsumers for probe and noun
+                    sense_list.append(best_sense)
+            # print(Counter(sense_list))
+            sorted_sense = sorted(Counter(sense_list).items(), key=itemgetter(1), reverse=True)
+            # Write to file
+            of.write((out_s.strip(' ')+'\n'))
+            of.write((sorted_sense[0][0].name()+'\n'))
+
+        # For word pairs in human judgment file
+        pairs = read_word_pairs(judgment_file)
+        resnik_sim_list, gold = [], []
+        for word1, word2, sim in pairs:
+            resnik_sim, best_sense = resnik(word1, word2, ic_data)
+            resnik_sim_list.append(resnik_sim)
+            gold.append(float(sim))
+            out_s = word1 + ',' + word2 + ':' + str(resnik_sim) + '\n'
+            of.write(out_s)
+        correlation = spearmanr(gold, resnik_sim_list)[0]
+        out_s = 'Correlation:' + str(correlation) + '\n'
+        of.write(out_s)
+
+
 if __name__ == "__main__":
-    use_local_file = True
+    use_local_file = False
     if use_local_file:
         if 'hw8' in os.listdir():
             os.chdir('hw8')
@@ -97,6 +133,8 @@ if __name__ == "__main__":
     # sentences = list(nltk.corpus.brown.sents())
     # # sentences = list(nltk.corpus.brown.words())
     #
-    # wnic = wordnet_ic.ic('ic-brown-resnik-add1.dat')
+    wnic = wordnet_ic.ic('ic-brown-resnik-add1.dat')
 
     test_data = read_wsd_test_file(wsd_test_filename)
+
+    resnik_wsd(test_data, wnic, output_filename, judgment_filename)
