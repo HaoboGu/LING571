@@ -124,16 +124,12 @@ if __name__ == "__main__":
         wsd_test_filename = sys.argv[2]
         judgment_filename = sys.argv[3]
         output_filename = sys.argv[4]
-    # # Read word pairs
-    # print('Reading word pairs...')
-    # pairs = read_word_pairs(judgment_filename)
-    #
-    # # brown_words = list(nltk.corpus.brown.words())[0:22079]
-    # print('Reading corpus...')
-    # sentences = list(nltk.corpus.brown.sents())
-    # # sentences = list(nltk.corpus.brown.words())
-    #
-    wnic = wordnet_ic.ic('ic-brown-resnik-add1.dat')
+
+    if information_file_type == 'nltk':
+        wnic = wordnet_ic.ic('ic-brown-resnik-add1.dat')
+    else:
+        print('Do not have other information content file, use nltk instead')
+        wnic = wordnet_ic.ic('ic-brown-resnik-add1.dat')
 
     test_data = read_wsd_test_file(wsd_test_filename)
 
