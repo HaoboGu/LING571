@@ -134,3 +134,4 @@ if __name__ == "__main__":
     test_data = read_wsd_test_file(wsd_test_filename)
 
     resnik_wsd(test_data, wnic, output_filename, judgment_filename)
+    
