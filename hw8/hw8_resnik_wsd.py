@@ -119,7 +119,7 @@ def resnik_wsd(data, ic_data, output_file, judgment_file):
 
 
 if __name__ == "__main__":
-    use_local_file = True
+    use_local_file = False
     if use_local_file:
         if 'hw8' in os.listdir():
             os.chdir('hw8')
