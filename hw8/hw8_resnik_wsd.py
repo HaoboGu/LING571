@@ -89,12 +89,20 @@ def resnik_wsd(data, ic_data, output_file, judgment_file):
                 resnik_sim, best_sense = resnik(probe, noun, ic_data)
                 out_s = out_s + '(' + probe + ', ' + noun + ', ' + str(resnik_sim) + ')' + ' '
                 if not isinstance(best_sense, str):  # if no common subsumers for probe and noun
-                    sense_list.append(best_sense)
+                    sense_list.append((best_sense, resnik_sim))  # add sense and corresponding sim to list
             # print(Counter(sense_list))
-            sorted_sense = sorted(Counter(sense_list).items(), key=itemgetter(1), reverse=True)
+            # Add IC for same sense, and sort them
+            sense_dict = {}
+            for sense, sim in sense_list:
+                if sense.name() not in sense_dict:
+                    sense_dict[sense.name()] = sim
+                else:
+                    sense_dict[sense.name()] += sim
+            sorted_sense = sorted(sense_dict.items(), key=itemgetter(1), reverse=True)
+            # print(sorted_sense)
             # Write to file
             of.write((out_s.strip(' ')+'\n'))
-            of.write((sorted_sense[0][0].name()+'\n'))
+            of.write((sorted_sense[0][0]+'\n'))
 
         # For word pairs in human judgment file
         pairs = read_word_pairs(judgment_file)
@@ -111,7 +119,7 @@ def resnik_wsd(data, ic_data, output_file, judgment_file):
 
 
 if __name__ == "__main__":
-    use_local_file = False
+    use_local_file = True
     if use_local_file:
         if 'hw8' in os.listdir():
             os.chdir('hw8')
@@ -134,4 +142,3 @@ if __name__ == "__main__":
     test_data = read_wsd_test_file(wsd_test_filename)
 
     resnik_wsd(test_data, wnic, output_filename, judgment_filename)
-    
