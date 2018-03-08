@@ -51,7 +51,7 @@ if __name__ == "__main__":
         for word in pronoun_in_sent:
             out_str = word
             out_str = out_str + ' ' + tree1.pformat(margin=500) + ' ' + tree2.pformat(margin=500) + '\n'
-            # print(out_str)那还挺爽的
+            # print(out_str)
             output_file.write(out_str)
         output_file.write('\n')
         i += 3
