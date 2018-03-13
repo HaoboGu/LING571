@@ -1,38 +1,40 @@
 # README
 
-This repositort is used in LING571: Deep techniques for NLP
+This repository contains homeworks in LING571: Deep techniques for NLP
 
 ## HW1
 
-Implemented a parser using NLTK
+A English sentence parser using NLTK
 
 ## HW2
 
-Implemented a convertor which converts a normal context free grammar (CFG) file to a grammar file in Chomsky Normal Form (CNF)
+A convertor which converts a normal context free grammar (CFG) file to a grammar file in Chomsky Normal Form (CNF)
 
 ## HW3
 
-Implemented CKY parsing algorithm. 
+CKY parsing algorithm. 
 
 ## HW4
 
-Implemented a Probabilistic CKY parsing algorithm. 
+Probabilistic CKY parsing algorithm. 
 
 ## HW5
 
-Built a Feature-based Grammar file which can be read and processed by NLTK. 
+Build a Feature-based Grammar file which can be read and processed by NLTK. 
 
 ## HW6
 
-Created target semantic representations for given sentences. 
-
-Implemented a system which reads created representations and do semantic parsing. 
+A system which reads manually created representations and does semantic parsing. 
 
 ## HW7
 
-Implemented a system creating and evaluating count-based models of distributional semantic similarity.
+A system which creates and evaluates count-based models of distributional semantic similarity.
 
 ## HW8
 
-Implemented a Word Sense Disambinguation(WSD) system using Resnik's similarity measure
+A system which does Word Sense Disambinguation(WSD) using Resnik's similarity measure
 
+## HW9
+
+A simple program which finds pronouns in the second sentence of a pair of sentences. 
+Then manually went through Hobbs algorithm to find pronouns' co-reference.  
